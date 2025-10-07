@@ -40,21 +40,21 @@ function getRandomModel(): string {
 async function getWorkingModel(): Promise<string> {
   const maxAttempts = AVAILABLE_MODELS.length;
   const attemptedModels = new Set<string>();
-  
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     let modelName: string;
-    
+
     // Get a random model that hasn't been tried yet
     do {
       modelName = getRandomModel();
     } while (attemptedModels.has(modelName) && attemptedModels.size < AVAILABLE_MODELS.length);
-    
+
     attemptedModels.add(modelName);
-    
+
     try {
       // Test if the model is available by creating a model instance
       const model = genAI.getGenerativeModel({ model: modelName });
-      
+
       // Try a simple test generation to verify the model works
       const testResult = await model.generateContent('Test');
       if (testResult.response) {
@@ -66,7 +66,7 @@ async function getWorkingModel(): Promise<string> {
       continue;
     }
   }
-  
+
   // If all models fail, fallback to the default
   console.warn('All models failed, falling back to gemini-2.5-flash');
   return 'gemini-2.5-flash';
@@ -213,112 +213,112 @@ The estimated timeline should be between 1-5 months maximum.`;
 
     try {
       const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+      const response = await result.response;
+      const text = response.text();
 
-    // Handle markdown code blocks - extract JSON from ```json ... ``` or just plain JSON
-    let jsonString = text;
-    
-    // Check if response is wrapped in markdown code blocks
-    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-    if (codeBlockMatch) {
-      jsonString = codeBlockMatch[1];
-    } else {
-      // Fallback to original regex for plain JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.error('No JSON found in response:', text);
-        throw new Error('Failed to parse AI response');
-      }
-      jsonString = jsonMatch[0];
-    }
+      // Handle markdown code blocks - extract JSON from ```json ... ``` or just plain JSON
+      let jsonString = text;
 
-    try {
-      const parsedResponse = JSON.parse(jsonString) as CapstoneIdeaResponse;
-      
-      // Add the request parameters to the response
-      const enhancedResponse: CapstoneIdeaResponse & { industry: string; projectType: string; difficulty: string } = {
-        ...parsedResponse,
-        industry: request.industry,
-        projectType: request.projectType,
-        difficulty: request.difficulty,
-      };
-
-      return {
-        success: true,
-        data: enhancedResponse
-      };
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('JSON string that failed to parse:', jsonString);
-      throw new Error('Failed to parse AI response as JSON');
-    }
-  } catch (error) {
-    console.error('Model failed during generation:', error);
-    
-    // If the current model fails, try with a different random model
-    if (AVAILABLE_MODELS.length > 1) {
-      console.log('Retrying with a different model...');
-      const fallbackModelName = getRandomModel();
-      const fallbackModel = genAI.getGenerativeModel({ model: fallbackModelName });
-      
-      try {
-        const result = await fallbackModel.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        // Handle markdown code blocks - extract JSON from ```json ... ``` or just plain JSON
-        let jsonString = text;
-        
-        // Check if response is wrapped in markdown code blocks
-        const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-        if (codeBlockMatch) {
-          jsonString = codeBlockMatch[1];
-        } else {
-          // Fallback to original regex for plain JSON
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            console.error('No JSON found in response:', text);
-            throw new Error('Failed to parse AI response');
-          }
-          jsonString = jsonMatch[0];
+      // Check if response is wrapped in markdown code blocks
+      const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1];
+      } else {
+        // Fallback to original regex for plain JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          console.error('No JSON found in response:', text);
+          throw new Error('Failed to parse AI response');
         }
+        jsonString = jsonMatch[0];
+      }
+
+      try {
+        const parsedResponse = JSON.parse(jsonString) as CapstoneIdeaResponse;
+
+        // Add the request parameters to the response
+        const enhancedResponse: CapstoneIdeaResponse & { industry: string; projectType: string; difficulty: string } = {
+          ...parsedResponse,
+          industry: request.industry,
+          projectType: request.projectType,
+          difficulty: request.difficulty,
+        };
+
+        return {
+          success: true,
+          data: enhancedResponse
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('JSON string that failed to parse:', jsonString);
+        throw new Error('Failed to parse AI response as JSON');
+      }
+    } catch (error) {
+      console.error('Model failed during generation:', error);
+
+      // If the current model fails, try with a different random model
+      if (AVAILABLE_MODELS.length > 1) {
+        console.log('Retrying with a different model...');
+        const fallbackModelName = getRandomModel();
+        const fallbackModel = genAI.getGenerativeModel({ model: fallbackModelName });
 
         try {
-          const parsedResponse = JSON.parse(jsonString) as CapstoneIdeaResponse;
-          
-          // Add the request parameters to the response
-          const enhancedResponse: CapstoneIdeaResponse & { industry: string; projectType: string; difficulty: string } = {
-            ...parsedResponse,
-            industry: request.industry,
-            projectType: request.projectType,
-            difficulty: request.difficulty,
-          };
+          const result = await fallbackModel.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text();
 
-          console.log(`Successfully used fallback model: ${fallbackModelName}`);
+          // Handle markdown code blocks - extract JSON from ```json ... ``` or just plain JSON
+          let jsonString = text;
+
+          // Check if response is wrapped in markdown code blocks
+          const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+          if (codeBlockMatch) {
+            jsonString = codeBlockMatch[1];
+          } else {
+            // Fallback to original regex for plain JSON
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+              console.error('No JSON found in response:', text);
+              throw new Error('Failed to parse AI response');
+            }
+            jsonString = jsonMatch[0];
+          }
+
+          try {
+            const parsedResponse = JSON.parse(jsonString) as CapstoneIdeaResponse;
+
+            // Add the request parameters to the response
+            const enhancedResponse: CapstoneIdeaResponse & { industry: string; projectType: string; difficulty: string } = {
+              ...parsedResponse,
+              industry: request.industry,
+              projectType: request.projectType,
+              difficulty: request.difficulty,
+            };
+
+            console.log(`Successfully used fallback model: ${fallbackModelName}`);
+            return {
+              success: true,
+              data: enhancedResponse
+            };
+          } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            console.error('JSON string that failed to parse:', jsonString);
+            throw new Error('Failed to parse AI response as JSON');
+          }
+        } catch (fallbackError) {
+          console.error(`Fallback model ${fallbackModelName} also failed:`, fallbackError);
           return {
-            success: true,
-            data: enhancedResponse
+            success: false,
+            error: 'All models failed to generate content. Please try again later.'
           };
-        } catch (parseError) {
-          console.error('JSON parse error:', parseError);
-          console.error('JSON string that failed to parse:', jsonString);
-          throw new Error('Failed to parse AI response as JSON');
         }
-      } catch (fallbackError) {
-        console.error(`Fallback model ${fallbackModelName} also failed:`, fallbackError);
+      } else {
         return {
           success: false,
-          error: 'All models failed to generate content. Please try again later.'
+          error: error instanceof Error ? error.message : 'Failed to generate capstone idea'
         };
       }
-    } else {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to generate capstone idea'
-      };
     }
-  }
   } catch (finalError) {
     console.error('Unexpected error in generateCapstoneIdeaAction:', finalError);
     return {

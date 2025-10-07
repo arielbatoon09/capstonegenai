@@ -9,7 +9,6 @@ import { generateCapstoneIdeaAction } from '@/app/actions/generate-idea';
 import { Industry, ProjectType, DifficultyLevel, CapstoneIdea } from '@/types/capstone';
 import { Sparkles, GraduationCap, Clock } from 'lucide-react';
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 
 function App() {
   const [industry, setIndustry] = useState<Industry | ''>('');
@@ -197,7 +196,6 @@ function App() {
             </motion.div>
           </div>
         </div>
-        <Toaster />
       </div>
     </div>
   );
