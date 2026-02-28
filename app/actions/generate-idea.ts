@@ -15,7 +15,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 // Rate limiting configuration
-const RATE_LIMIT_WINDOW = 3 * 60 * 1000; // 3 minutes in milliseconds
+const RATE_LIMIT_WINDOW = 1 * 60 * 1000; // 1 minutes in milliseconds
 const MAX_REQUESTS_PER_WINDOW = 1;
 
 // Available Gemini models for rotation
